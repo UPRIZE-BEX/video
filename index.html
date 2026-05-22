@@ -248,84 +248,24 @@
     <script type="module" src="./main-photosphere.js"></script>
     <script type="module">
 
-        const GOOGLE_DRIVE_API_KEY = 'AIzaSyCZkRafUsjUWDjcB6HlhQBXgD9tVZUo4so';
-        const DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1YWwyonq8-eTju3A9cRqgYo0fBJ0XQTZT';
+        const galleryData = [
+            { type: 'video', src: './assets/gallery/v09044g40000chvddbbc77u2ln13r2h0.mp4', thumb: './assets/gallery/v09044g40000chvddbbc77u2ln13r2h0.mp4', caption: 'Video 01' },
+            { type: 'video', src: './assets/gallery/v0f025gc0000cbfub5jc77uceo7lqg30.mp4', thumb: './assets/gallery/v0f025gc0000cbfub5jc77uceo7lqg30.mp4', caption: 'Video 02' },
+            { type: 'video', src: './assets/gallery/v0f025gc0000cbvkigjc77u8ff3tl88g.mp4', thumb: './assets/gallery/v0f025gc0000cbvkigjc77u8ff3tl88g.mp4', caption: 'Video 03' },
+            { type: 'video', src: './assets/gallery/v0f025gc0000ccdikkbc77u41egn9mbg.mp4', thumb: './assets/gallery/v0f025gc0000ccdikkbc77u41egn9mbg.mp4', caption: 'Video 04' },
+            { type: 'video', src: './assets/gallery/v0f025gc0000cci5g2bc77ucl199od60.mp4', thumb: './assets/gallery/v0f025gc0000cci5g2bc77ucl199od60.mp4', caption: 'Video 05' },
+            { type: 'video', src: './assets/gallery/v0f025gc0000cd43gpbc77u246ijfa30.mp4', thumb: './assets/gallery/v0f025gc0000cd43gpbc77u246ijfa30.mp4', caption: 'Video 06' },
+            { type: 'video', src: './assets/gallery/v14044g50000cprf9gvog65or6tdp24g.mp4', thumb: './assets/gallery/v14044g50000cprf9gvog65or6tdp24g.mp4', caption: 'Video 07' },
+            { type: 'video', src: './assets/gallery/v14044g50000cqrfqtvog65silfjvpe0.mp4', thumb: './assets/gallery/v14044g50000cqrfqtvog65silfjvpe0.mp4', caption: 'Video 08' },
+            { type: 'video', src: './assets/gallery/v14044g50000csc9i77og65vfgt7fpf0.mp4', thumb: './assets/gallery/v14044g50000csc9i77og65vfgt7fpf0.mp4', caption: 'Video 09' },
+            { type: 'video', src: './assets/gallery/v14044g50000ct77honog65n3f6tvohg.mp4', thumb: './assets/gallery/v14044g50000ct77honog65n3f6tvohg.mp4', caption: 'Video 10' },
+            { type: 'video', src: './assets/gallery/v14044g50000cujcucvog65pkhtt0bug.mp4', thumb: './assets/gallery/v14044g50000cujcucvog65pkhtt0bug.mp4', caption: 'Video 11' },
+            { type: 'video', src: './assets/gallery/v14044g50000cv56rvvog65te2jjuel0.mp4', thumb: './assets/gallery/v14044g50000cv56rvvog65te2jjuel0.mp4', caption: 'Video 12' }
+        ];
 
-        function getDriveFolderInfo(url) {
-            const idMatch = url.match(/\/folders\/([^/?#]+)/) || url.match(/[?&]id=([^&#]+)/);
-            const resourceKey = new URLSearchParams(url.split('?')[1] || '').get('resourcekey') || '';
-            return idMatch ? { id: idMatch[1], resourceKey } : null;
-        }
-
-        function driveImageURL(fileId, resourceKey = '') {
-            const resourceParam = resourceKey ? `&resourcekey=${encodeURIComponent(resourceKey)}` : '';
-            return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}${resourceParam}&sz=w1600`;
-        }
-
-        function driveVideoURL(fileId) {
-            return `https://drive.google.com/file/d/${encodeURIComponent(fileId)}/preview`;
-        }
-
-        function normalizeDriveThumbnail(url) {
-            return url ? url.replace(/=s\d+(?:-[^/?#]+)?(?=($|[?#]))/, '=s1600') : '';
-        }
-
-        async function fetchDriveGallery(folderUrl) {
-            const folderInfo = getDriveFolderInfo(folderUrl);
-            if (!folderInfo) return [];
-
-            const gallery = [];
-            let pageToken = '';
-            const headers = {};
-            if (folderInfo.resourceKey) {
-                headers['X-Goog-Drive-Resource-Keys'] = `${folderInfo.id}/${folderInfo.resourceKey}`;
-            }
-
-            do {
-                const params = new URLSearchParams({
-                    key: GOOGLE_DRIVE_API_KEY,
-                    q: `'${folderInfo.id}' in parents and trashed=false`,
-                    fields: 'nextPageToken,files(id,name,mimeType,resourceKey,thumbnailLink)',
-                    pageSize: '1000',
-                    orderBy: 'name',
-                });
-                if (pageToken) params.set('pageToken', pageToken);
-
-                const response = await fetch(`https://www.googleapis.com/drive/v3/files?${params}`, { headers });
-                if (!response.ok) throw new Error(`Drive API error ${response.status}`);
-
-                const data = await response.json();
-                gallery.push(
-                    ...(data.files || [])
-                        .filter(file => file.mimeType && (file.mimeType.startsWith('image/') || file.mimeType.startsWith('video/')))
-                        .map(file => {
-                            const isVideo = file.mimeType.startsWith('video/');
-                            const resourceKey = file.resourceKey || folderInfo.resourceKey;
-                            return {
-                                type: isVideo ? 'video' : 'image',
-                                src: isVideo ? driveVideoURL(file.id) : driveImageURL(file.id, resourceKey),
-                                thumb: normalizeDriveThumbnail(file.thumbnailLink) || driveImageURL(file.id, resourceKey),
-                                caption: file.name || (isVideo ? 'Video' : 'Image')
-                            };
-                        })
-                );
-                pageToken = data.nextPageToken || '';
-            } while (pageToken);
-
-            return gallery;
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener('DOMContentLoaded', () => {
             const loaderStatus = document.getElementById('loader-status');
-            if (loaderStatus) loaderStatus.textContent = 'Dang tai anh tu Google Drive...';
-
-            let galleryData = [];
-            try {
-                galleryData = await fetchDriveGallery(DRIVE_FOLDER_URL);
-            } catch (error) {
-                console.error('Unable to load Drive folder:', error);
-                if (loaderStatus) loaderStatus.textContent = 'Khong tai duoc anh tu Google Drive';
-            }
+            if (loaderStatus) loaderStatus.textContent = 'Đang tải media local...';
 
             const start = () => {
                 if (!window.PhotoSphere) {
